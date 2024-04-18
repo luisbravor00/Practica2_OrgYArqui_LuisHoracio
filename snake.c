@@ -5,6 +5,9 @@
 #define RED (0xFF0404)
 #define BLACK (0x000000)
 #define GREEN (0x12DB33)
+#define BLUE (0x0000FF)
+#define MATRIX_HEIGHT 24
+#define MATRIX_WIDTH 34
 
 volatile unsigned int * led_base = LED_MATRIX_0_BASE;
 volatile unsigned int * dpad_up = D_PAD_0_UP;
@@ -14,59 +17,127 @@ volatile unsigned int * dpad_right = D_PAD_0_RIGHT;
 volatile unsigned int * switch_base = SWITCHES_0_BASE;
 int lastMovement = 0;
 
+void checkCollisions() {
+    switch(lastMovement) {
+        case 1:
+            
+        break;
+        case 2:
+        
+        break;
+        case 3:
+        
+        break;
+        case 4:
+        
+        break;
+    }
+}
+
+void drawRectangle() {
+    for (int i=0; i<MATRIX_WIDTH; i++) {
+        *led_base = BLUE;
+        led_base++;
+    }
+    for (int i=0; i<MATRIX_HEIGHT; i++) {
+        *led_base = BLUE;
+        led_base += LED_MATRIX_0_WIDTH;
+    }
+    for (int i=0; i<MATRIX_WIDTH; i++) {
+        *led_base = BLUE;
+        led_base--;
+    }
+    for (int i=0; i<MATRIX_HEIGHT; i++) {
+        *led_base = BLUE;
+        led_base -= LED_MATRIX_0_WIDTH;
+    }
+}
+
+
 void initGame() {
+    drawRectangle();
+    led_base += LED_MATRIX_0_WIDTH + 1;
     *led_base = RED;
-    led_base++;
-    *led_base = RED;
-    led_base += LED_MATRIX_0_WIDTH - 1;
+    led_base += LED_MATRIX_0_WIDTH;
     *led_base = RED;
     led_base++;
     *led_base = RED;
     led_base -= LED_MATRIX_0_WIDTH;
+    *led_base = RED;
 }
 
 void clearTail() {
-    int * start = led_base;
+    if (lastMovement == 1) {
+        led_base += LED_MATRIX_0_WIDTH;
+        *led_base = BLACK;
+        led_base--;
+        *led_base = BLACK;
+        // Regresar puntero
+        led_base++;
+        led_base -= LED_MATRIX_0_WIDTH;
+    }
     if (lastMovement == 2) {
         led_base--;
         *led_base = BLACK;
         led_base += LED_MATRIX_0_WIDTH;
         *led_base = BLACK;
+        // Regresar puntero
+        led_base -= LED_MATRIX_0_WIDTH - 1;
     }
     if (lastMovement == 3) {
         led_base--;
         *led_base = BLACK;
+        // Regresar puntero
         led_base++;
         *led_base = BLACK;
-        led_base += LED_MATRIX_0_WIDTH;
     }
-    led_base = start;
+    if (lastMovement == 4) {
+        *led_base = BLACK;
+        led_base += LED_MATRIX_0_WIDTH;
+        *led_base = BLACK;
+        // Regresar puntero
+        led_base -= LED_MATRIX_0_WIDTH;
+        led_base--;
+    }
 }
 
 void moveSnake() {
-    // int * start = led_base;
+    clearTail();
     
     if (lastMovement == 1) {
-        led_base = 0;
+        led_base -= LED_MATRIX_0_WIDTH;
+        *led_base = RED;
+        led_base--;
+        *led_base = RED;
+        // Regresar puntero
+        led_base++;
+        
     } else if (lastMovement == 2) {
-        clearTail();
         led_base++;
         *led_base = RED;
         led_base += LED_MATRIX_0_WIDTH;
         *led_base = RED;
         led_base -= LED_MATRIX_0_WIDTH;
+        
     } else if (lastMovement == 3) {
-        clearTail();
-        led_base += LED_MATRIX_0_WIDTH - 1;
+        led_base += LED_MATRIX_0_WIDTH * 2;
         *led_base = RED;
-        led_base ++;
+        led_base--;
         *led_base = RED;
         // Regresar puntero
+        led_base -= LED_MATRIX_0_WIDTH;
+        led_base++;
+        
     } else if (lastMovement == 4) {
-        led_base = 0;
+        led_base--;
+        *led_base = RED;
+        led_base += LED_MATRIX_0_WIDTH;
+        *led_base = RED;
+        // Regresar puntero
+        led_base -= LED_MATRIX_0_WIDTH;
+        led_base++;
+        
     }
-    
-    // led_base = start;
 }
 
 int detectMovement() {
@@ -96,19 +167,17 @@ void main() {
     
     while (gameInitiated) {
         initGame();
-        
+        printf("Direccion inicial: %d", *led_base);
         while (1) {
             movement = detectMovement();
-            printf("Movement %i", movement);
+            printf("Movement %i - ", movement);
             moveSnake();
-            for(int i=0; i<10000; i++);
+            for(int i=0; i<6500; i++);
             
             if (*switch_base & SW0) {
                 printf("Reiniciando juego...");
                 break;
             }
         }
-        // Delay
-       
     }
 }
