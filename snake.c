@@ -15,6 +15,11 @@ volatile unsigned int * dpad_down = D_PAD_0_DOWN;
 volatile unsigned int * dpad_left = D_PAD_0_LEFT;
 volatile unsigned int * dpad_right = D_PAD_0_RIGHT;
 volatile unsigned int * switch_base = SWITCHES_0_BASE;
+//SNAKE"S BODY to be able to keep track of it's length
+volatile unsigned int * snakeBody[MATRIX_HEIGHT * MATRIX_WIDTH / 4]; 
+volatile unsigned int * snakeHead, * snakeTail;
+unsigned int snakeLength = 0;
+
 int lastMovement = 0;
 
 void checkCollisions() {
@@ -56,6 +61,7 @@ void drawRectangle() {
 
 void initGame() {
     drawRectangle();
+    /*
     led_base += LED_MATRIX_0_WIDTH + 1;
     *led_base = RED;
     led_base += LED_MATRIX_0_WIDTH;
@@ -64,6 +70,21 @@ void initGame() {
     *led_base = RED;
     led_base -= LED_MATRIX_0_WIDTH;
     *led_base = RED;
+    */
+    //Initialize pointer to the snakes body
+    volatile unsigned int * ptr = led_base + LED_MATRIX_0_WIDTH + 1;
+    snakeBody[snakeLength] = ptr;
+    snakeLength++;
+    *ptr++ = RED;
+    *ptr++ = RED;
+    *ptr++ = RED;
+    *ptr = RED;
+    
+    //HEAD AND TAIL
+    snakeHead = snakeBody[0];
+    snakeTail = snakeBody[snakeLength - 1];
+    
+    
 }
 
 void clearTail() {
@@ -104,6 +125,8 @@ void clearTail() {
 void moveSnake() {
     clearTail();
     
+    volatile unsigned int * previousTail = snakeTail;
+    
     if (lastMovement == 1) {
         led_base -= LED_MATRIX_0_WIDTH;
         *led_base = RED;
@@ -137,6 +160,13 @@ void moveSnake() {
         led_base -= LED_MATRIX_0_WIDTH;
         led_base++;
         
+    }
+    
+    snakeHead = led_base;
+    
+    //im just shifting the snakes body here
+    for (int i = 0; i < snakeLength; i++) {
+        snakeBody[i] = (i == 0) ? snakeHead : snakeBody[i - 1];
     }
 }
 
