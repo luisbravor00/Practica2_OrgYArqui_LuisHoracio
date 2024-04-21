@@ -1,5 +1,6 @@
 #include "ripes_system.h"
 #include "stdio.h"
+#include "stdlib.h"
 #include "time.h"
 
 #define SW0 (0x01)
@@ -24,30 +25,45 @@ volatile unsigned int * applePos;
 unsigned int snakeLength = 0;
 int apple = 0;
 int randomAppleSeed = 0;
+//Flag to see if snake has crashed
+int hasCrashed = 0;
 
 int lastMovement = 0;
 
 void checkCollisions() {
     switch(lastMovement) {
         case 1:
+            //up
             if(lastMovement == 1){
-                //check to see if next led is blue or red
-                if(*(snakeHead - LED_MATRIX_0_WIDTH) == BLUE || *(snakeHead - LED_MATRIX_0_WIDTH) == RED{
-                    return 1;
+                //check to see if next led is blue or red when going up
+                if(*(snakeHead - LED_MATRIX_0_WIDTH) == BLUE || *(snakeHead - LED_MATRIX_0_WIDTH) == RED){
+                    hasCrashed = 1;
                 }
             }
         break;
         case 2:
-            if(*led_base == BLUE || *snakeHead == *snakeBody){
-                return 1;
+            //right
+            if(lastMovement == 2){
+                if(*(snakeHead + 1) == BLUE || *(snakeHead + 1) == RED){
+                 hasCrashed = 1;
+                }
             }
-        
         break;
         case 3:
-        
+            //down
+            if(lastMovement == 3){
+                if(*(snakeHead + LED_MATRIX_0_WIDTH) == BLUE || *(snakeHead + LED_MATRIX_0_WIDTH) == RED){
+                 hasCrashed = 1;
+                }
+            }
         break;
         case 4:
-        
+            //left
+            if(lastMovement == 4){
+                if(*(snakeHead - 1) == BLUE || *(snakeHead - 1) == RED){
+                 hasCrashed = 1;
+                }
+            }
         break;
     }
 }
@@ -74,6 +90,7 @@ void generateApple() {
         
     }
     */
+    //srand is for the random seed generator
     srand(randomAppleSeed++);
     int appleX = rand() % ((MATRIX_WIDTH - 1));
     int appleY = rand() % ((MATRIX_HEIGHT - 1));
@@ -127,7 +144,8 @@ void initGame() {
     *led_base = RED;
     */
     //Initialize pointer to the snakes body
-    volatile unsigned int * ptr = led_base + LED_MATRIX_0_WIDTH + 1;
+    led_base += LED_MATRIX_0_WIDTH + 1;
+    volatile unsigned int * ptr = led_base;
     snakeBody[snakeLength] = ptr;
     snakeLength++;
     *ptr++ = RED;
@@ -218,6 +236,12 @@ void moveSnake() {
         led_base -= LED_MATRIX_0_WIDTH;
         led_base++;
         
+    }
+    
+    checkCollisions();
+    
+    if(hasCrashed){
+        exit(0);
     }
     
     snakeHead = led_base;
