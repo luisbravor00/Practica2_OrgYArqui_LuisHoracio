@@ -1,5 +1,6 @@
 #include "ripes_system.h"
 #include "stdio.h"
+#include "time.h"
 
 #define SW0 (0x01)
 #define RED (0xFF0404)
@@ -16,18 +17,30 @@ volatile unsigned int * dpad_left = D_PAD_0_LEFT;
 volatile unsigned int * dpad_right = D_PAD_0_RIGHT;
 volatile unsigned int * switch_base = SWITCHES_0_BASE;
 //SNAKE"S BODY to be able to keep track of it's length
+//Array that holds pointers
 volatile unsigned int * snakeBody[MATRIX_HEIGHT * MATRIX_WIDTH / 4]; 
 volatile unsigned int * snakeHead, * snakeTail;
+volatile unsigned int * applePos;
 unsigned int snakeLength = 0;
+int apple = 0;
+int randomAppleSeed = 0;
 
 int lastMovement = 0;
 
 void checkCollisions() {
     switch(lastMovement) {
         case 1:
-            
+            if(lastMovement == 1){
+                //check to see if next led is blue or red
+                if(*(snakeHead - LED_MATRIX_0_WIDTH) == BLUE || *(snakeHead - LED_MATRIX_0_WIDTH) == RED{
+                    return 1;
+                }
+            }
         break;
         case 2:
+            if(*led_base == BLUE || *snakeHead == *snakeBody){
+                return 1;
+            }
         
         break;
         case 3:
@@ -37,6 +50,48 @@ void checkCollisions() {
         
         break;
     }
+}
+
+void drawApple() {
+    volatile unsigned int *applePtr = applePos;
+    
+    applePtr += LED_MATRIX_0_WIDTH + 1;
+    *applePtr = GREEN;
+    applePtr += LED_MATRIX_0_WIDTH;
+    *applePtr = GREEN;
+    applePtr++;
+    *applePtr = GREEN;
+    applePtr -= LED_MATRIX_0_WIDTH;
+    *applePtr = GREEN;
+}
+
+void generateApple() {
+    /*
+    //set x and y coordinates randomly    
+    apple = ((rand() % MATRIX_HEIGHT) + (rand() % MATRIX_WIDTH);
+    
+    for(int i = 0;i<snakeTail;i++){
+        
+    }
+    */
+    srand(randomAppleSeed++);
+    int appleX = rand() % ((MATRIX_WIDTH - 1));
+    int appleY = rand() % ((MATRIX_HEIGHT - 1));
+    
+    applePos = led_base + appleY + LED_MATRIX_0_WIDTH + appleX;
+    
+    //check to see if the apple's coordinates are within the snake's head
+    volatile unsigned int *ptr = snakeBody[0];
+    while(ptr <= snakeTail) {
+        if(ptr == applePos || ptr == applePos + 1 || 
+        ptr == applePos + LED_MATRIX_0_WIDTH || ptr == applePos + LED_MATRIX_0_WIDTH - 1)
+        {
+            generateApple();
+            return;
+        }
+        ptr++;
+    }  
+    drawApple();  
 }
 
 void drawRectangle() {
@@ -83,6 +138,9 @@ void initGame() {
     //HEAD AND TAIL
     snakeHead = snakeBody[0];
     snakeTail = snakeBody[snakeLength - 1];
+    
+    //apple position
+    generateApple();
     
     
 }
